@@ -1,104 +1,109 @@
-# 🔐 PQC Transition Toolkit
+# 🔐 QuantumShield — PQC Transition Toolkit
 
-**Implementing & Extending:** Birgin & Celiktas (2026). *"From Policy to Practice: A Sector-Agnostic Operational Framework for Post-Quantum Cryptography Transition."* IEEE Access, Vol. 14. DOI: [10.1109/ACCESS.2026.3669437](https://doi.org/10.1109/ACCESS.2026.3669437)
+**A working risk-scoring and CI/CD enforcement engine for organizations preparing for the post-quantum cryptography transition.**
 
-**By:** Muhammad Ahmad  
+Built on and extending: Birgin & Celiktas (2026). *"From Policy to Practice: A Sector-Agnostic Operational Framework for Post-Quantum Cryptography Transition."* IEEE Access, Vol. 14. DOI: [10.1109/ACCESS.2026.3669437](https://doi.org/10.1109/ACCESS.2026.3669437)
+
+**By:** Muhammad Ahmad
 **Course:** Information Security | University of Management and Technology, Lahore | Spring 2026
 
----
-
-## 📌 What This Tool Does
-
-This toolkit operationalises the seven-phase PQC Transition Framework from the paper above into a working Python/Streamlit application. It:
-
-1. **Reproduces** the Quantum Risk Scoring (QRS) model from the paper (Equation 1, Table 8)
-2. **Extends** it with a 14-asset cross-sector dataset (Healthcare, Finance, Energy, Education) — **new contribution**
-3. **Simulates** the CI/CD enforcement gate (Algorithm 1 from paper) with ALLOW/RESTRICT/BLOCK decisions
-4. **Generates** verifiable audit artifacts (`qrs_results.json`, `audit_gate.json`)
+🔗 **Live demo:** (https://pqc-transition-toolkit-vejssahtbbtw47ydgvzvsb.streamlit.app/)
 
 ---
 
-## 🚀 Quick Start
+## What Is This?
+
+Quantum computers capable of breaking RSA and ECC don't need to exist *yet* for today's encrypted data to be at risk — an attacker can harvest encrypted traffic now and decrypt it later once quantum computing catches up ("Harvest Now, Decrypt Later"). Organizations need a systematic way to figure out **which of their systems are most urgently exposed**, and enforce migration to quantum-resistant algorithms before it's too late.
+
+This toolkit turns that problem into something concrete and interactive:
+
+1. **Reproduces** the Quantum Risk Scoring (QRS) model from the referenced paper (Equation 1, Table 8)
+2. **Lets you score real assets** through a live form — no pre-seeded fictional data, you enter what's real
+3. **Simulates a CI/CD enforcement gate** (Algorithm 1 from the paper), returning `ALLOW` / `RESTRICT` / `BLOCK` decisions
+4. **Generates downloadable audit artifacts** (`qrs_results.json`, `audit_gate.json`) so results are exportable, not just on-screen
+
+---
+
+## Try It
 
 ```bash
-# 1. Clone the repo
-git clone https://github.com/[your-username]/pqc-transition-toolkit.git
-cd pqc-transition-toolkit
-
-# 2. Install dependencies
+git clone https://github.com/<your-username>/quantumshield.git
+cd quantumshield
 pip install -r requirements.txt
-
-# 3. Run the dashboard
 streamlit run app.py
 ```
 
-Open your browser at `http://localhost:8501`
+Opens at `http://localhost:8501`.
 
 ---
 
-## 🔢 QRS Formula (from paper, Equation 1)
+## How Scoring Works
 
 ```
-QRS = (0.30 × Data Longevity) 
+QRS = (0.30 × Data Longevity)
     + (0.25 × Algorithm Vulnerability)
     + (0.25 × Key Exposure)
     + (0.20 × System Dependence)
 ```
 
-**AHP Weights** (paper Table 7, Consistency Ratio CR = 0.022 < 0.10):
-| Factor | Weight | Rationale |
-|--------|--------|-----------|
-| Data Longevity | 0.30 | Long-lived data faces HNDL exposure |
-| Algorithm Vulnerability | 0.25 | Classical RSA/ECC = max vulnerability |
-| Key Exposure | 0.25 | Distributed keys = broad attack surface |
-| System Dependence | 0.20 | Mission-critical = highest impact |
+Each factor is rated 1–10. Weights come from an AHP (Analytic Hierarchy Process) pairwise comparison in the source paper (Consistency Ratio = 0.022, well under the 0.10 acceptability threshold).
 
-**Policy Thresholds** (paper Table 5):
-| Score | Policy | Action |
-|-------|--------|--------|
+| Factor | Weight | Why it matters |
+|---|---|---|
+| Data Longevity | 0.30 | Data that must stay confidential for years is most exposed to harvest-now-decrypt-later attacks |
+| Algorithm Vulnerability | 0.25 | Classical RSA/ECC offer zero resistance to a sufficiently powerful quantum computer |
+| Key Exposure | 0.25 | Keys distributed across more systems/people mean a wider attack surface |
+| System Dependence | 0.20 | Mission-critical systems carry the highest impact if compromised |
+
+**Policy thresholds:**
+
+| QRS Score | Policy | Meaning |
+|---|---|---|
 | ≥ 8.0 | 🔴 MIGRATE | Immediate PQC migration required |
-| ≥ 7.0 | 🟠 HYBRID | Add hybrid classical+PQC controls |
-| ≥ 6.0 | 🔵 MONITOR | Monitor, plan migration |
-| < 6.0 | 🟢 DEFER | Low risk, reassess annually |
+| ≥ 7.0 | 🟠 HYBRID | Deploy hybrid classical + PQC controls |
+| ≥ 6.0 | 🔵 MONITOR | Add telemetry, plan migration |
+| < 6.0 | 🟢 DEFER | Low risk — reassess annually |
 
 ---
 
-## 📁 Project Structure
+## What's In the App
+
+- **Paper Assets dashboard** — exact reproduction of the 6 government-sector assets from the paper's Table 8, for validation against the published results
+- **Extended QRS (your data)** — a live, session-based dataset you build yourself via the scoring form; supports Healthcare, Finance, Energy, Education, and custom sectors
+- **CI/CD Enforcement Gate** — run either dataset through the gate logic and get an audit-ready ALLOW/RESTRICT/BLOCK decision with a downloadable JSON artifact
+- **Evidence & Audit Log** — exports a combined `qrs_results.json` evidence bundle and shows the AHP weight rationale for review
+
+---
+
+## Project Structure
 
 ```
-pqc-transition-toolkit/
-├── app.py                    # Streamlit dashboard entry point
+quantumshield/
+├── app.py              # Streamlit dashboard — main entry point
+├── qrs_engine.py        # QRS formula, CI/CD gate, standalone scoring module
 ├── requirements.txt
-├── README.md
-├── modules/
-│   └── qrs_engine.py         # QRS formula, CI/CD gate, asset datasets
-├── data/
-│   └── extended_assets.json  # 14-asset cross-sector dataset (new contribution)
-└── evidence/
-    ├── qrs_results.json      # Phase P3 audit artifact
-    └── audit_gate.json       # Phase P5 CI/CD enforcement artifact
+└── README.md
 ```
 
 ---
 
-## ✨ New Contributions (Beyond the Original Paper)
+## Beyond the Original Paper
 
 | Contribution | Description |
 |---|---|
-| Extended Dataset | 14 assets across 4 sectors vs original 6 assets (1 sector) |
-| Sector Analysis | Average QRS per sector — Finance (8.73) and Energy (8.20) exceed MIGRATE threshold |
-| Interactive Tool | Full web dashboard vs paper's static scenario |
-| Custom Scoring | Users can score any asset in real time |
-| CI/CD Simulation | Live gate decisions with downloadable audit artifacts |
+| Live custom scoring | The paper validates against 6 fixed government assets; this tool lets anyone score their own real assets interactively |
+| Cross-sector support | Built-in sector tagging for Healthcare, Finance, Energy, and Education, not just Government |
+| CI/CD gate simulation | The paper's enforcement algorithm, runnable live with instant ALLOW/RESTRICT/BLOCK feedback |
+| Exportable evidence | One-click JSON artifact downloads for audit trails, matching the paper's evidence taxonomy (Table 10) |
 
 ---
 
-## 📚 Reference
+## Reference
 
 ```bibtex
 @article{birgin2026pqc,
   author  = {Birgin, Berat and Celiktas, Baris},
-  title   = {From Policy to Practice: A Sector-Agnostic Operational Framework 
+  title   = {From Policy to Practice: A Sector-Agnostic Operational Framework
              for Post-Quantum Cryptography Transition},
   journal = {IEEE Access},
   volume  = {14},
